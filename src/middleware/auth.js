@@ -8,35 +8,31 @@ function isvalidObjectId(ObjectId) {
 
 //---------------------------authentication---------------------------//
 exports.authentication = function (req, res, next) {
-  try {
-    let checkHeader = req.headers["x-api-key"];
-    if (!checkHeader) {
-      return res
-        .status(400)
-        .send({ status: false, msg: "In headers section token is madatory" });
-    }
+    try {
+        const token = req.headers["x-api-key"]
 
-    //verifing that token
-    let decodedToken = jwt.verify(
-      checkHeader,
-      "Group-27-Secret-Key",
-      (err, decode) => {
-        if (err) {
-          let msg =
-            err.message === "jwt expired"
-              ? "Token is expired"
-              : "Token is invalid";
-          return res.status(400).send({ status: false, message: msg });
+        // token validation.
+        if (!token) {
+            return res.status(400).send({ status: false, message: "token must be present" })
         }
-        //Seting userId in headers for Future Use
-        req.decode = decode;
-        next();
-      }
-    );
-  } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
-  }
-};
+        else {
+            jwt.verify(token, "project-5", function (err, data) {
+                if (err) {
+                    return res.status(400).send({ status: false, message: err.message })
+                }
+                else {
+                    req.userId = data.userId
+                    next()
+
+                }
+            })
+        }
+    }
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+}
+
 
 //---------------------Autherization part--------------------------//
 
