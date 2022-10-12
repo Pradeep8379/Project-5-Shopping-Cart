@@ -29,7 +29,7 @@ exports.authentication = function (req, res, next) {
           return res.status(400).send({ status: false, message: msg });
         }
         //Seting userId in headers for Future Use
-        req.decode = decode;
+        req.userId = decode.userId;
         next();
       }
     );
