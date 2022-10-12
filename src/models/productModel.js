@@ -21,7 +21,7 @@ const productModel = new mongoose.Schema(
         },
 
         currencyFormat: {
-            type: string, require: true
+            type: String, require: true
         },
 
         isFreeShipping:
@@ -30,9 +30,9 @@ const productModel = new mongoose.Schema(
             default: false
         },
         productImage: {
-            type: string, 
-            require: true 
-        },  
+            type: String,
+            required: true
+        },
 
         style: { type: String },
 
@@ -46,7 +46,8 @@ const productModel = new mongoose.Schema(
         },
 
         deletedAt: {
-            type: Date
+            type: Date,
+            default:null
         },
 
         isDeleted: {
