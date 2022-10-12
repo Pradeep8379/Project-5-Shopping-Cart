@@ -1,21 +1,277 @@
-const mongoose = require("mongoose");
 const userModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const { uploadFile } = require("../controller/awsController")
 
-const { isValidPassword, isValid, isValidPincode, isValidbody } = require("../validator/validate")
+const { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName, isvalidObjectId } = require("../validator/validate")
 
-const nameRegex = /^[A-Z][a-z]$/
-const emailRegex = /^[a-z]{1}[a-z0-9._]{1,100}[@]{1}[a-z]{2,15}[.]{1}[a-z]{2,10}$/
-const phoneRegex = /^[6-9]\d{9}$/
 
+const jwt = require('jsonwebtoken')
+
+//------------------create user---------------------------//
+
+const createUser = async function (req, res) {
+    try {
+        const requestBody = req.body;
+        let files = req.files;
+        if (!files) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Photo is required" });
+        }
+        if (files && files.length > 0) {
+            //upload to s3 and get the uploaded link
+            // res.send the link back to frontend/postman
+            let imageUrl = await uploadFile(files[0]);
+            requestBody.profileImage = imageUrl;
+        }
+
+        if (!isvalidRequestBody(requestBody)) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Request body can not be empty" });
+        }
+
+
+
+        let { fname, lname, email, phone, password, address } = requestBody;
+        if (!fname) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide fname" });
+        }
+
+        if (!isValidName(fname)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+
+        if (!lname) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide lname" });
+        }
+
+        if (!isValidName(lname)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+
+        if (!email) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide E-mail" });
+        }
+        if (!isVAlidEmail(email)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+
+        if (!phone) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide phone number" });
+        }
+        if (!isValidPhone(phone)) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide valid phone number" });
+        }
+
+        if (!password) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide password" });
+        }
+
+        if (password.length < 8 || password.length > 15) {
+            return res.status(400).send({
+                staus: false,
+                message: "Length of the password must be between 8 to 15 charaxters",
+            });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const createPwd = await bcrypt.hash(password, salt);
+        requestBody.password = createPwd;
+
+        let uniquePhoneAndEmail = await userModel.find({
+            $or: [{ email: requestBody.email }, { phone: requestBody.phone }],
+        });
+        if (uniquePhoneAndEmail.length !== 0) {
+            if (uniquePhoneAndEmail[0].email == requestBody.email)
+                return res
+                    .status(400)
+                    .send({
+                        status: false,
+                        data: "Email Id Already Exists,Please Input Another Email Id",
+                    });
+            else {
+                return res
+                    .status(400)
+                    .send({
+                        status: false,
+                        data: "Phone Number Already Exists,Please Input Another phone Number",
+                    });
+            }
+        }
+
+        address = JSON.parse(address);
+
+        if (!address.shipping.street) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping street" });
+        }
+
+        if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+
+        if (!address.shipping.pincode) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping pincode" });
+        }
+
+        if (!isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "shipping pincode is in incorrect format" })
+
+        if (!address.shipping.city) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping city" });
+        }
+
+        if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+
+        if (!address.billing.street) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping street" });
+        }
+
+        if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+
+        if (!address.billing.pincode) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping pincode" });
+        }
+
+        if (!isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "shipping pincode is in incorrect format" })
+
+        if (!address.billing.city) {
+            return res
+                .status(400)
+                .send({ status: false, message: "Please provide shipping city" });
+        }
+
+        if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
+
+        requestBody.address = address;
+        const createData = await userModel.create(requestBody);
+        res
+            .status(201)
+            .send({
+                status: true,
+                message: "User created successfully",
+                data: createData,
+            });
+    } catch (error) {
+        return res.status(500).send({ status: false, error: error.message });
+    }
+}
+    ;
+
+
+//-----------------------user login-------------------------//
+
+const userLogin = async function (req, res) {
+    try {
+        let data = req.body;
+        if (Object.keys(data).length === 0)
+            return res
+                .status(400)
+                .send({ status: false, error: "Body can't be empty" });
+
+        let { email, password } = data;
+
+        if (!isValid(email))
+            return res
+                .status(400)
+                .send({ status: false, message: "Email is required !!" });
+        if (!isVAlidEmail(email))
+            return res
+                .status(400)
+                .send({ status: false, message: "Enter valid email" });
+
+        if (!isValid(password))
+            return res
+                .status(400)
+                .send({ status: false, message: "Invalid password !!" });
+
+        if (password.length < 8 || password.length > 15) {
+            return res.status(400).send({
+                staus: false,
+                message: "Length of the password must be between 8 to 15 charaxters",
+            });
+        }
+
+        let passwords = await userModel.findOne({ email: email })
+        let datas = await bcrypt.compare(password, passwords.password)
+        if (!datas) {
+            return res.status(400).send({ status: false, message: "Invalid credentials" })
+        }
+
+        let userid = await userModel.findOne({ email: email, password: passwords.password });
+        // creating Token
+        let token = jwt.sign(
+            {
+                userId: userid._id,
+                group: "group-52",
+                iat: Math.floor(Date.now() / 1000),
+                exp: Math.floor(Date.now() / 1000) + (60 * 60)
+            },
+            "project-5",
+        );
+        let obj = {
+            userId: userid._id,
+            token: token
+        }
+        res
+            .status(200)
+            .send({ status: true, message: "User login successfull", data: obj });
+    } catch (err) {
+        res.status(500).send({ status: false, error: err.message });
+    }
+};
+
+// =====================================get user deatils==================================//
+const getUserDetail = async function (req, res) {
+    try {
+        const userIdFromParams = req.params.userId;
+        const userIdFromToken = req.userId
+
+        if (!isvalidObjectId(userIdFromParams)) {
+            return res.status(400).send({ status: false, message: "userId is invalid" });
+        }
+
+        const userByuserId = await userModel.findById(userIdFromParams);
+
+        if (!userByuserId) {
+            return res.status(404).send({ status: false, message: 'user not found.' });
+        }
+
+        if (userIdFromToken != userIdFromParams) {
+            return res.status(403).send({
+                status: false,
+                message: "Unauthorized access.",
+            });
+        }
+
+        return res.status(200).send({ status: true, message: "User details", data: userByuserId });
+
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+
+}
+// =====================================UPdate USER==========================================//
 
 const updateUser = async function (req, res) {
     try {
         const userId = req.params.userId;
         let data = req.body;
 
-        if (!isValidbody(data)) {
+        if (!isValidbody(data) && !req.files) {
             return res.status(400).send({ status: false, message: "enter something to update..." })
         }
         // userId validation
@@ -23,12 +279,12 @@ const updateUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "enter user Id..." })
         }
 
-        const isValidId = mongoose.Types.ObjectId.isValid(userId);
-        if (!isValidId) {
+
+        if (!isvalidObjectId(userId)) {
             return res.status(400).send({ status: false, message: "enter valid user Id..." })
         }
 
-        let user = await userModel.findById({ _id: userId});
+        let user = await userModel.findById({ _id: userId });
 
         if (!user) {
             return res.status(404).send({ status: false, message: " user not found..." })
@@ -40,24 +296,26 @@ const updateUser = async function (req, res) {
 
         // Destructuring
         const { fname, lname, email, phone, password, address } = data;
-
+        // fname validation.
         if (fname) {
-            if (!isValid(fname)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
-            if (!fname.match(nameRegex)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+            if (!isValid(fname)) return res.status(400).send({ status: false, message: "fnamncorrect format..." })
         }
+        if (!isValidName(fname)) return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+
         if (lname) {
             if (!isValid(lname)) return res.status(400).send({ status: false, message: "lname is in incorrect format..." })
-            if (!lname.match(nameRegex)) return res.status(400).send({ status: false, message: "lname is in incorrect format..." })
         }
+        if (!isValidName(lname)) return res.status(400).send({ status: false, message: "lname is in incorrect format..." })
+
         if (email) {
             if (!isValid(email)) return res.status(400).send({ status: false, message: "email is in incorrect format..." })
-            if (!email.match(emailRegex)) return res.status(400).send({ status: false, message: "email is in incorrect format..." })
+            if (!isVAlidEmail(email)) return res.status(400).send({ status: false, message: "email is in incorrect format..." })
             let user = await userModel.findOne({ email })
             if (user) return res.status(400).send({ status: false, message: "email already used" })
         }
         if (phone) {
             if (!isValid(phone)) return res.status(400).send({ status: false, message: "phone is in incorrect format" })
-            if (!phone.match(phoneRegex)) return res.status(400).send({ status: false, message: "phone is in incorrect format" })
+            if (!isValidPhone(phone)) return res.status(400).send({ status: false, message: "phone is in incorrect format" })
             let user = await userModel.findOne({ phone })
             if (user) return res.status(400).send({ status: false, message: "phone already used" })
         }
@@ -72,19 +330,21 @@ const updateUser = async function (req, res) {
 
         if (address) {
             address = JSON.parse(address)
-            if (typeof address != "object") return res.status(400).send({ status: false, message: "address is in incorrect format" })
+
             if (address.shipping) {
                 if (address.shipping.street) {
+
                     if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "shipping street is in incorrect format" })
                     updates["address.shipping.street"] = address.shipping.street
+
                 }
                 if (address.shipping.city) {
                     if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "shipping city is in incorrect format" })
                     updates["address.shipping.city"] = address.shipping.city
                 }
                 if (address.shipping.pincode) {
-                    if (typeof address.shipping.pincode != "number") return res.status(400).send({ status: false, message: "shipping pincode is in incorrect format" })
-                    if (!isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Pincode should be 6 characters long" })
+
+                    if (!isValidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "shipping pincode is in incorrect format" })
                     updates["address.shipping.pincode"] = address.shipping.pincode
                 }
             }
@@ -98,7 +358,7 @@ const updateUser = async function (req, res) {
                     updates["address.billing.city"] = address.billing.city
                 }
                 if (address.billing.pincode) {
-                    if (typeof address.billing.pincode != "number") return res.status(400).send({ status: false, message: "billing pincode is in incorrect format" })
+
                     if (!isValidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "Pincode should be 6 characters long" })
                     updates["address.billing.pincode"] = address.billing.pincode
                 }
@@ -107,9 +367,11 @@ const updateUser = async function (req, res) {
         }
 
         if (req.files) {
+
             let image = req.files[0]
             if (image) {
                 let url = await uploadFile(image)
+
                 data.profileImage = url
             }
         }
@@ -124,4 +386,5 @@ const updateUser = async function (req, res) {
     }
 }
 
-module.exports = { updateUser };
+module.exports = { createUser, userLogin, updateUser, getUserDetail };
+

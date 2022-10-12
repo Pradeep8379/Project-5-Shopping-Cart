@@ -8,63 +8,40 @@ function isvalidObjectId(ObjectId) {
 
 //---------------------------authentication---------------------------//
 exports.authentication = function (req, res, next) {
-  try {
-    let checkHeader = req.headers["x-api-key"];
-    if (!checkHeader) {
-      return res
-        .status(400)
-        .send({ status: false, msg: "In headers section token is madatory" });
-    }
+    try {
+        // const token = req.headers('Authorization');
 
-    //verifing that token
-    let decodedToken = jwt.verify(
-      checkHeader,
-      "Group-27-Secret-Key",
-      (err, decode) => {
-        if (err) {
-          let msg =
-            err.message === "jwt expired"
-              ? "Token is expired"
-              : "Token is invalid";
-          return res.status(400).send({ status: false, message: msg });
+        const token = req.headers['authorization'];
+        //check if bearer is undefined
+        if (!token) {
+          return res.status(401).send({ status: false, message: "login is required" })
+      }
+
+      let splitToken = token.split(" ")
+
+      
+
+        // token validation.
+        if (!token) {
+            return res.status(400).send({ status: false, message: "token must be present" })
         }
         //Seting userId in headers for Future Use
-        req.userId = decode.userId;
-        next();
-      }
-    );
-  } catch (err) {
-    return res.status(500).send({ status: false, msg: err.message });
-  }
-};
+        else {
+            jwt.verify(splitToken[1], "project-5", function (err, data) {
+                if (err) {
+                    return res.status(400).send({ status: false, message: err.message })
+                }
+                else {
+                    req.userId = data.userId
+                    next()
 
-//---------------------Autherization part--------------------------//
-
-exports.autherization = async function (req, res, next) {
-  try {
-    if (req.params.userId) {
-      if (!isvalidObjectId(req.params.userId)) {
-        return res
-          .status(400)
-          .send({ status: false, msg: "Not a valid userId" })
-      }
-      let findUserId = await bookModel.findById(req.params.userId)
-      if(!findUserId){
-        return res
-        .status(404)
-        .send({ status: false, msg: "No such user found" }) 
-      }
-      if (findUserId.userId != req.decode.userId) {
-        return res
-        .status(403)
-        .send({ status: false, msg: "Not an Authorized user" }) 
-      }return next()
+                }
+            })
+        }
     }
-  } catch (err) {
-    return res.status(500).send({
-      status: false,
-      msg: " Authrization Server Error !!",
-      errMessage: err.message,
-    });
-  }
-};
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+
