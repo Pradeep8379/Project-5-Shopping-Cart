@@ -19,7 +19,7 @@ exports.authentication = function (req, res, next) {
 
       let splitToken = token.split(" ")
 
-      
+   
 
         // token validation.
         if (!token) {
