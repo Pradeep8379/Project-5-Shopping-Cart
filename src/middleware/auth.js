@@ -12,6 +12,7 @@ exports.authentication = function (req, res, next) {
         // const token = req.headers('Authorization');
 
         const token = req.headers['authorization'];
+        
         //check if bearer is undefined
         if (!token) {
           return res.status(401).send({ status: false, message: "login is required" })

@@ -13,19 +13,20 @@ const createUser = async function (req, res) {
     try {
         const requestBody = req.body;
         let files = req.files;
-        if (!files) {
+        if (files.length===0) {
             return res
                 .status(400)
                 .send({ status: false, message: "Photo is required" });
         }
-        if (files && files.length > 0) {
+        console.log(files)
+        if ( files.length > 0) {
             //upload to s3 and get the uploaded link
             // res.send the link back to frontend/postman
             let imageUrl = await uploadFile(files[0]);
             requestBody.profileImage = imageUrl;
         }
 
-        if (!isvalidRequestBody(requestBody)) {
+        if (!isValidbody(requestBody)) {
             return res
                 .status(400)
                 .send({ status: false, message: "Request body can not be empty" });
@@ -105,9 +106,9 @@ const createUser = async function (req, res) {
                     });
             }
         }
-
+        console.log(address)
         address = JSON.parse(address);
-
+        console.log(address)
         if (!address.shipping.street) {
             return res
                 .status(400)
