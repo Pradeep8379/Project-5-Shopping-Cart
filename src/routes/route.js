@@ -14,6 +14,7 @@ router.get("/user/:userId/profile",middleWare.authentication,userController.getU
 router.put("/user/:userId/profile",middleWare.authentication,userController.updateUser)
 router.post("/products",productController.createProduct)
 router.get('/products',productController.getProduct)
+router.put('/products/:productId',productController.updateProduct)
 
 router.all("/*", function (req, res) {
     return res.status(400).send({status: false,message: "Path Not Found"});

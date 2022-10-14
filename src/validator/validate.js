@@ -70,7 +70,11 @@ const isValidPrice=function(price){
 
 }
 
-module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isvalidObjectId, isValidPrice }
+function isValidSize(size) {
+  return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(size) !== -1;
+}
+
+module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isvalidObjectId, isValidPrice, isValidSize }
 
 
 
