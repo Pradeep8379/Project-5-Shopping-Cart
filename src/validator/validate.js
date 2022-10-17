@@ -10,9 +10,8 @@ const isValid = function (value) {
 
 const isValidPassword = function (password) {
   password = password.trim()
-  if (password.length < 8 || password.length > 15) {
-    return false
-  } return true
+  if (password.length < 8 || password.length > 15) { return false }
+   return true
 }
 //------------------------------- email regex --------------------------------------------//
 
@@ -34,12 +33,6 @@ const isValidUrl = function (profileImage) {
   );
 };
 
-// const isValidPincode = function (pincode) {
-//     if (pincode.toString().length != 6) {
-//         return false
-//     } return true
-// }
-
 const isValidPincode = function (pincode) {
   return (/^[1-9][0-9]{5}$/).test(pincode)
 
@@ -50,18 +43,13 @@ const isValidbody = function (x) {
 }
 
 
-// const isValidName = function (name) {
-//   return (/^[A-Z][a-z]$/).test(name)
-
-// }
-
 const isValidName = function (name) {
   const nameRegex = /^[a-zA-Z]+$/;
   return nameRegex.test(name);
 };
 
 
-const isvalidObjectId = function (ObjectId) {
+const isValidObjectId = function (ObjectId) {
   return mongoose.Types.ObjectId.isValid(ObjectId);
 }
 
@@ -74,7 +62,7 @@ function isValidSize(size) {
   return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(size) !== -1;
 }
 
-module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isvalidObjectId, isValidPrice, isValidSize }
+module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isValidObjectId, isValidPrice, isValidSize }
 
 
 
