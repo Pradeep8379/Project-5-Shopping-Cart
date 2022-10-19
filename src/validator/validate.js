@@ -62,7 +62,12 @@ function isValidSize(size) {
   return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(size) !== -1;
 }
 
-module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isValidObjectId, isValidPrice, isValidSize }
+
+function isValidStatus(status) {
+  return ["pending", "completed", "cancled"].indexOf(status) !== -1;
+}
+
+module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isValidObjectId, isValidPrice, isValidSize,isValidStatus }
 
 
 
