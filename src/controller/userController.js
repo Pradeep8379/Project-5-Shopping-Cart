@@ -40,9 +40,9 @@ const createUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "Please provide fname" });
         }
 
-        if (!isValidName(fname)) {
-            return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
-        }
+        // if (!isValidName(fname)) {
+        //     return res.status(400).send({ status: false, message: "fname is in incorrect format..." })
+        // }
 
         if (!lname) {
             return res.status(400).send({ status: false, message: "Please provide lname" });
@@ -187,13 +187,13 @@ const userLogin = async function (req, res) {
             return res.status(400).send({ staus: false, message: "Length of the password must be between 8 to 15 charaxters" });
         }
 
-        let passwords = await userModel.findOne({ email: email })
-        let datas = await bcrypt.compare(password, passwords.password)
-        if (!datas) {
+        let findPassword = await userModel.findOne({ email: email })
+        let passwordData = await bcrypt.compare(password, findPassword.password)
+        if (!passwordData) {
             return res.status(400).send({ status: false, message: "Invalid credentials" })
         }
 
-        let userid = await userModel.findOne({ email: email, password: passwords.password });
+        let userid = await userModel.findOne({ email: email, password: findPassword.password });
 
         // creating Token
         let token = jwt.sign(

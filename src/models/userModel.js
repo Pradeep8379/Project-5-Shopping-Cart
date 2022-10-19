@@ -54,17 +54,17 @@ const userModel = new mongoose.Schema(
       billing: {
         street: {
             type: String,
-            // requried: true,
+             requried: true,
             trim:true
           },
           city: {
             type: String,
-            // required: true,
+             required: true,
             trim:true
           },
           pincode: {
             type: Number,
-            // required: true,
+             required: true,
             trim:true
           },
         },
