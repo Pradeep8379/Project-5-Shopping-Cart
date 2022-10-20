@@ -6,14 +6,16 @@ const isValid = function (value) {
   return false;
 };
 
-
+//-------------------valid password-------------------------//
 
 const isValidPassword = function (password) {
-  password = password.trim()
-  if (password.length < 8 || password.length > 15) { return false }
-   return true
-}
-//------------------------------- email regex --------------------------------------------//
+  password = password.trim();
+  if (password.length < 8 || password.length > 15) {
+    return false;
+  }
+  return true;
+};
+//--------------------- email regex ----------------------//
 
 const isVAlidEmail = function (email) {
   return /^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(email);
@@ -25,49 +27,54 @@ const isValidPhone = function (phone) {
   return /^[6789]\d{9}$/.test(phone);
 };
 
-//-----------------------profileImage-----------------------//
-
-const isValidUrl = function (profileImage) {
-  return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/.test(
-    profileImage
-  );
-};
+//----------------------- pincode -----------------------//
 
 const isValidPincode = function (pincode) {
-  return (/^[1-9][0-9]{5}$/).test(pincode)
+  return /^[1-9][0-9]{5}$/.test(pincode);
+};
 
-}
+//-------------------valid body----------------------//
+const isValidBody = function (x) {
+  return Object.keys(x).length > 0;
+};
 
-const isValidbody = function (x) {
-  return Object.keys(x).length > 0
-}
-
-
+//-------------------valid name------------------------//
 const isValidName = function (name) {
   const nameRegex = /^[a-zA-Z]+$/;
   return nameRegex.test(name);
 };
 
-
+//-------------------valid object Id------------------//
 const isValidObjectId = function (ObjectId) {
   return mongoose.Types.ObjectId.isValid(ObjectId);
-}
+};
 
-const isValidPrice=function(price){
-  return (/^\d+(\.\d{1,2})?$/).test(price)
+//-----------------valid number--------------------//
+const isValidPrice = function (price) {
+  return /^\d+(\.\d{1,2})?$/.test(price);
+};
 
-}
-
+//-----------------valid size---------------------//
 function isValidSize(size) {
   return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(size) !== -1;
 }
 
+//------------------valid status--------------------//
 
 function isValidStatus(status) {
-  return ["pending", "completed", "cancled"].indexOf(status) !== -1;
+  return ["pending", "completed", "cancelled"].indexOf(status) !== -1;
 }
 
-module.exports = { isValidPassword, isVAlidEmail, isValidPhone, isValid, isValidPincode, isValidbody, isValidName,isValidObjectId, isValidPrice, isValidSize,isValidStatus }
-
-
-
+module.exports = {
+  isValidPassword,
+  isVAlidEmail,
+  isValidPhone,
+  isValid,
+  isValidPincode,
+  isValidBody,
+  isValidName,
+  isValidObjectId,
+  isValidPrice,
+  isValidSize,
+  isValidStatus,
+};
