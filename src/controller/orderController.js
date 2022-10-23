@@ -201,7 +201,7 @@ const updateOrder = async function (req, res) {
       });
     } else if (status == "cancelled") {
       let updatedCancled = await orderModel.findOneAndUpdate(
-        { _id: orderId, cancellable: false },
+        { _id: orderId, cancellable: true },
         { $set: { status: status, isDeleted: true, deletedAt: new Date() } },
         { new: true }
       );

@@ -199,6 +199,16 @@ const getProduct = async (req, res) => {
       filter.price = { $gt: priceGreaterThan };
     }
 
+   
+    if (priceLessThan) {
+      if (!isValidPrice(priceLessThan)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Please provide valid price" });
+      }
+      filter.price = { $lt: priceLessThan };
+    }
+
     if (priceGreaterThan && priceLessThan) {
       if(!isValidPrice(priceGreaterThan && priceLessThan)){
         return res.status(400).send({status:false, message:"Please provide valid price"})
@@ -207,14 +217,6 @@ const getProduct = async (req, res) => {
         $gt: Number(priceGreaterThan),
         $lt: Number(priceLessThan),
       };
-    }
-    if (priceLessThan) {
-      if (!isValidPrice(priceLessThan)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Please provide valid price" });
-      }
-      filter.price = { $lt: priceLessThan };
     }
 
    

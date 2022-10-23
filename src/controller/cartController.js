@@ -238,7 +238,7 @@ const updateCart = async function (req, res) {
         .status(403)
         .send({ status: false, message: "not authorized to update this cart" });
 
-    console.log(loggedInUser, cartFind.userId.toString());
+    
     //Make sure the user exist-
     const userFind = await userModel.findById(userId);
     if (!userFind)
@@ -385,7 +385,7 @@ const deleteCartById = async (req, res) => {
     if (userCart.items.length === 0) {
       return res
         .status(400)
-        .send({ status: false, message: `Cart not created with this id` });
+        .send({ status: false, message: `cart is empty` });
     }
     if (!userCart) {
       return res.status(404).send({ status: false, msg: `No Cart Found!` });
