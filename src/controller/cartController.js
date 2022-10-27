@@ -105,7 +105,7 @@ const createCart = async function (req, res) {
         _id: productId,
         isDeleted: false,
       });
-      const newTotalPrice = existCart.totalPrice + findProduct.price * 1;
+      const newTotalPrice = existCart.totalPrice + findProduct.price ;
       let flag = 0;
       const items = existCart.items;
       for (let i = 0; i < items.length; i++) {
@@ -114,7 +114,7 @@ const createCart = async function (req, res) {
           var newCartData = {
             items: items,
             totalPrice: newTotalPrice,
-            quantity: 1,
+           
           };
           flag = 1;
           const saveData = await cartModel
@@ -141,7 +141,7 @@ const createCart = async function (req, res) {
           { userId: userIdByParams },
           {
             $addToSet: { items: addItems },
-            $inc: { totalItems: 1, totalPrice: findProduct.price * 1 },
+            $inc: { totalItems: 1, totalPrice: findProduct.price },
           },
           { new: true, upsert: true }
         );
@@ -238,7 +238,7 @@ const updateCart = async function (req, res) {
         .status(403)
         .send({ status: false, message: "not authorized to update this cart" });
 
-    
+
     //Make sure the user exist-
     const userFind = await userModel.findById(userId);
     if (!userFind)
